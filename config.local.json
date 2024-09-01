@@ -1,0 +1,30 @@
+{
+  "port": 8000,
+  "mode": "development",
+  "database": {
+    "dbHost": "127.0.0.1",
+    "dbPort": 3306,
+    "dbUser": "root",
+    "dbPswd": "root.cc",
+    "dbName": "db_hotel_bookings",
+    "maxOpenConn": 27,
+    "maxIdleConn": 27,
+    "maxIdleTime": "30m"
+  },
+  "token": {
+    "secretKey": "abcdefghijklnmopqrstuvwsyz0987654321",
+    "issuer": "hotel-booking-api",
+    "aTokenDuration": "15m",
+    "rTokenDuration": "360h"
+  },
+  "log": {
+    "level": "debug",
+    "logOutput": "log/access.log"
+  },
+  "redis": {
+    "addr": "localhost:6379",
+    "password": "",
+    "db": 7
+  }
+
+}
