@@ -28,6 +28,7 @@ type UserService interface {
 	GetUserByPhoneNumber(phone string) (*models.User, *gotk.ApiError)
 	UserLogin(req dto.LoginRequest, conf *config.Config, jwt token.Maker) (*dto.LoginResponse, *gotk.ApiError)
 	UserRefreshToken(payload *token.Payload, conf *config.Config, jwt token.Maker) (*dto.RenewTokenResponse, *gotk.ApiError)
+	UpdateUser(req dto.UpdateUserRequest, payload *token.Payload) *gotk.ApiError
 }
 
 type userSerive struct {
@@ -196,4 +197,21 @@ func (s userSerive) UserRefreshToken(payload *token.Payload, conf *config.Config
 		ExpiresAt:   aPayload.ExpiredAt,
 	}
 	return &resp, nil
+}
+
+func (s userSerive) UpdateUser(req dto.UpdateUserRequest, payload *token.Payload) *gotk.ApiError {
+	if strconv.Itoa(req.ID) != payload.UserText { // 检查是否更新自己的信息
+		return errs.ErrForbidden.AsMessage("无权操作")
+	}
+	user, err := s.store.GetOneByUq(stringMap{"id": payload.UserText})
+	if err != nil {
+		return db.ConvertToApiError(err)
+	}
+	user.Username = req.Username
+	user.Avatar = req.Avatar
+	err = s.store.UpdateOne(uint(req.ID), user)
+	if err != nil {
+		return db.ConvertToApiError(err)
+	}
+	return nil
 }

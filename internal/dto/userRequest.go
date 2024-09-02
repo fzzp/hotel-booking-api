@@ -21,3 +21,9 @@ type LoginRequest struct {
 	UserAgent string
 	ClientIP  string
 }
+
+type UpdateUserRequest struct {
+	ID       int    `json:"id" validate:"required,min=1"`
+	Username string `json:"username" validate:"required"`
+	Avatar   string `json:"avatar" validate:"required"`
+}

@@ -8,6 +8,7 @@ type ctxKey string
 
 var (
 	tokenPayloadKey = ctxKey("auth_payload")
+	userInfoKey     = ctxKey("user_info")
 )
 
 func GetByContext[T any](r *http.Request, key ctxKey, defaultVal T) T {

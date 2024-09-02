@@ -28,10 +28,21 @@ func (app *application) routes() http.Handler {
 	v1.Post("/sms", app.SendSMSCode)
 	v1.Post("/renewToken", app.RenewAccessToken)
 	v1.Get("/hotels", app.GetHotels)
+	v1.Get("/getRoomsByHotel/{id:[0-9]+}", app.GetRoomsHandler) // id?pageInt=1&pageSize=20
 
+	// 需要登陆认证接口
 	v1.Group(func(r chi.Router) {
 		r.Use(app.RequiredAuth)
 		r.Get("/profile", app.GetProfileHandler)
+		r.Post("/updateUser", app.UpdateUserInfo)
+
+	})
+
+	// 需要管理员权限的接口
+	v1.Group(func(r chi.Router) {
+		r.Use(app.RequiredAuth)    // 先验证登陆
+		r.Use(app.RequiredRole(1)) // 验证是否是管理员
+		r.Post("/addHotel", app.AddHotelHandler)
 	})
 
 	// 附加/挂载到mux上,方便版本维护

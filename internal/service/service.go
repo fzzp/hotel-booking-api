@@ -8,6 +8,7 @@ import (
 var rRepo *rdb.RedisRepo
 
 type stringMap map[string]string
+type pkg map[string]any
 
 type DefaultService struct {
 	SMS          SmsService
@@ -23,7 +24,7 @@ func NewDefaultService(repo *db.Repository, cache *rdb.RedisRepo) *DefaultServic
 	return &DefaultService{
 		SMS:          NewSmsService(),
 		User:         NewUserService(repo.UserRepo, repo.SessionRepo),
-		Hotel:        NewHotelService(),
+		Hotel:        NewHotelService(repo.HotelRepo),
 		Booking:      NewBookingService(),
 		Payment:      NewPaymentService(),
 		Notification: NewNotificationService(),

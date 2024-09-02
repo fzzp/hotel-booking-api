@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/fzzp/gotk"
+	"github.com/fzzp/gotk/token"
 	"github.com/fzzp/hotel-booking-api/pkg/errs"
 	"github.com/go-chi/cors"
 )
@@ -20,6 +22,9 @@ const (
 
 // 不需要验证的路由
 var unAuthPatterns = []string{}
+
+// 中间件函数签名
+type mwHandler func(next http.Handler) http.Handler
 
 func (app *application) EnableCORS() func(http.Handler) http.Handler {
 	return cors.Handler(cors.Options{
@@ -74,6 +79,7 @@ func (app *application) RecoverPanic(next http.Handler) http.Handler {
 
 func (app *application) RequiredAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("->>> 执行 RequiredAuth ")
 		for _, pattern := range unAuthPatterns {
 			if pattern == r.URL.Path {
 				next.ServeHTTP(w, r)
@@ -103,4 +109,41 @@ func (app *application) RequiredAuth(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+// RequiredRole 指定角色才通过, 利用闭包传递adminRole
+func (app *application) RequiredRole(adminRole int) mwHandler {
+	return func(next http.Handler) http.Handler {
+		fn := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			fmt.Println("->>> 执行 RequiredRole ")
+			var payload *token.Payload
+			payload = GetByContext(r, tokenPayloadKey, payload)
+			if payload == nil {
+				slog.ErrorContext(r.Context(), "从上下文获取payload为nil")
+				app.FAIL(w, r, errs.ErrServerError)
+				return
+			}
+			userID, _ := strconv.Atoi(payload.UserText)
+			if userID <= 0 {
+				slog.ErrorContext(r.Context(), "从上下文 token payload 中 userID <= 0", slog.Any("payload", payload))
+				app.FAIL(w, r, errs.ErrServerError)
+				return
+			}
+
+			user, err := app.service.User.GetUserByID(uint(userID))
+			if err != nil {
+				app.FAIL(w, r, err)
+				return
+			}
+			if user.Role != int8(adminRole) {
+				app.FAIL(w, r, errs.ErrForbidden.AsMessage("没有权限"))
+				return
+			}
+			// 存储user到上下文
+			r = r.WithContext(context.WithValue(r.Context(), userInfoKey, user))
+			next.ServeHTTP(w, r)
+		})
+
+		return fn
+	}
 }

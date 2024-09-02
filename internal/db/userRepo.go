@@ -39,7 +39,7 @@ func (store *userRepo) InsertOne(user *models.User) (id uint, err error) {
 // GetOneByUq 根据唯一字段查询用户信息.
 func (store *userRepo) GetOneByUq(fields map[string]string) (*models.User, error) {
 	sql := `select 
-		id, phone_number, username, password_hash, avatar
+		id, phone_number, username, password_hash, avatar, role
 	from users
 	where 
 	`

@@ -63,8 +63,8 @@ CREATE TABLE IF NOT EXISTS `rooms` (
 
 CREATE TABLE IF NOT EXISTS `room_types` (
 	id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT COMMENT "主键",
-	name varchar(60) NOT NULL COMMENT "客房类型",
-	description varchar(255) NOT NULL DEFAULT "" COMMENT "类型描述",
+	rt_name varchar(60) NOT NULL COMMENT "客房类型",
+	rt_description varchar(255) NOT NULL DEFAULT "" COMMENT "类型描述",
     UNIQUE unq_name(name)
 ) COMMENT="客房类型表";
 

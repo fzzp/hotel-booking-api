@@ -1,6 +1,10 @@
 package models
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/fzzp/hotel-booking-api/internal/dto"
+)
 
 type RoomStatus string
 
@@ -28,12 +32,41 @@ type Room struct {
 	CreatedAt   string `db:"created_at" json:"createdAt"`
 	UpdatedAt   string `db:"updated_at" json:"updatedAt"`
 	IsDeleted   int8   `db:"is_deleted" json:"-"`
+	RootType
+}
+
+func (r *Room) ToDto() dto.RoomResponse {
+	var statusAsText = "维护"
+	switch r.Status {
+	case string(Available):
+		statusAsText = "可用"
+	case string(Occupied):
+		statusAsText = "占用"
+	}
+	resp := dto.RoomResponse{
+		ID:                  r.ID,
+		HotelID:             r.HotelID,
+		RoomNo:              r.RoomNo,
+		Images:              r.Images,
+		Price:               r.Price,
+		RoomTypeID:          r.RoomTypeID,
+		Status:              r.Status,
+		StatusAsText:        statusAsText,
+		Capacity:            r.Capacity,
+		Description:         r.Description,
+		CreatedAt:           r.CreatedAt,
+		UpdatedAt:           r.UpdatedAt,
+		RoomTypeName:        r.RoomTypeName,
+		RoomTypeDescription: r.RoomTypeDescription,
+	}
+
+	return resp
 }
 
 type RootType struct {
-	ID          uint   `db:"id" json:"id"`
-	Name        string `db:"name" json:"name"`
-	Description string `db:"description" json:"description"`
+	ID                  uint   `db:"id" json:"id"`
+	RoomTypeName        string `db:"rt_name" json:"roomTypeName"`
+	RoomTypeDescription string `db:"rt_description" json:"roomTypeDescription"`
 }
 
 func (r *Room) CheckRoomStatus(s string) error {

@@ -77,6 +77,26 @@ func (app *application) GetProfileHandler(w http.ResponseWriter, r *http.Request
 	app.SUCC(w, r, user)
 }
 
+func (app *application) UpdateUserInfo(w http.ResponseWriter, r *http.Request) {
+	var req dto.UpdateUserRequest
+	if ok := app.ShouldBindJSON(w, r, &req); !ok {
+		return
+	}
+	var payload *token.Payload
+	payload = GetByContext(r, tokenPayloadKey, payload)
+	if payload == nil {
+		app.FAIL(w, r, errs.ErrServerError.AsMessage("登陆用户获取payload失败"))
+		return
+	}
+
+	err := app.service.User.UpdateUser(req, payload)
+	if err != nil {
+		app.FAIL(w, r, err)
+		return
+	}
+	app.SUCC(w, r, "修改成功")
+}
+
 func (app *application) RenewAccessToken(w http.ResponseWriter, r *http.Request) {
 	req := struct {
 		RefreshToken string `json:"refreshToken" validate:"required"`

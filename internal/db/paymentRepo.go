@@ -14,6 +14,12 @@ type paymentRepo struct {
 	DB Queryable
 }
 
+func NewPaymentRepo(qb Queryable) PaymentRepo {
+	return &paymentRepo{
+		DB: qb,
+	}
+}
+
 // GetOneByUq implements PaymentRepo.
 func (p *paymentRepo) GetOneByUq(map[string]string) (*models.Payment, error) {
 	panic("unimplemented")

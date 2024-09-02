@@ -1,6 +1,7 @@
 package db
 
 import (
+	"fmt"
 	"math"
 	"strings"
 )
@@ -12,12 +13,12 @@ type Filter struct {
 	SortSafeFields []string // 允许排序的安全字段，需要预设，如[id, -id]: id -> ASC, -id -> DESC
 }
 
-// sortColumn 对字段进行排序
+// sortSQL 对字段进行排序
 //
 // 如果有返回则是：" order by xx ASC, yy Desc ... "
 //
 // 没有则返回空串 " "
-func (f Filter) sortColumn() string {
+func (f Filter) sortSQL() string {
 	if len(f.SortFields) == 0 || len(f.SortSafeFields) == 0 {
 		return " "
 	}
@@ -60,22 +61,26 @@ func (f Filter) offset() int {
 	return (f.PageInt - 1) * f.PageSize
 }
 
-type Metadata struct {
-	CurrentPage  int `json:"current_page,omitempty"`
-	PageSize     int `json:"page_size,omitempty"`
-	FirstPage    int `json:"first_page,omitempty"`
-	LastPage     int `json:"last_page,omitempty"`
-	TotalRecords int `json:"total_records,omitempty"`
+func (f Filter) limitSQL() string {
+	return fmt.Sprintf("LIMIT %d OFFSET %d", f.limit(), f.offset())
 }
 
-func calculateMetadata(totalRecords, page, pageSize int) Metadata {
+type Metadata struct {
+	CurrentPage  int `json:"currentPage,omitempty"`
+	PageSize     int `json:"pageSize,omitempty"`
+	FirstPage    int `json:"firstPage,omitempty"`
+	LastPage     int `json:"lastPage,omitempty"`
+	TotalRecords int `json:"totalRecords,omitempty"`
+}
+
+func calculateMetadata(totalRecords, pageInt, pageSize int) Metadata {
 	if totalRecords == 0 {
 
 		return Metadata{}
 	}
 
 	return Metadata{
-		CurrentPage:  page,
+		CurrentPage:  pageInt,
 		PageSize:     pageSize,
 		FirstPage:    1,
 		LastPage:     int(math.Ceil(float64(totalRecords) / float64(pageSize))),

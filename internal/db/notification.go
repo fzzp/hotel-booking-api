@@ -14,6 +14,12 @@ type notificationRepo struct {
 	DB Queryable
 }
 
+func NewNotificationRepo(qb Queryable) NotificationRepo {
+	return &notificationRepo{
+		DB: qb,
+	}
+}
+
 // GetOneByUq implements NotificationRepo.
 func (n *notificationRepo) GetOneByUq(map[string]string) (*models.Notification, error) {
 	panic("unimplemented")
